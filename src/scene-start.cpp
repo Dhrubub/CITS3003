@@ -39,7 +39,7 @@ mat4 projection; // Projection matrix - set in the reshape function
 mat4 view; // View matrix - set in the display function.
 
 // These are used to set the window title
-char lab[] = "Test1";//"Project1";
+char lab[] = "12345";//"Project1";
 char *programName = NULL; // Set in main 
 int numDisplayCalls = 0; // Used to calculate the number of frames per second
 
@@ -398,7 +398,10 @@ void drawMesh(SceneObject sceneObj) {
 	// Set the model matrix - this should combine translation, rotation and scaling based on what's
 	// in the sceneObj structure (see near the top of the program).
 
-	mat4 model = Translate(sceneObj.loc) * Scale(sceneObj.scale);
+	//	Need to put a negative in sceneObj.angles to reverse direction of mouse to conform with specificaiton
+	mat4 Rotation = RotateX(-sceneObj.angles[0]) * RotateY(sceneObj.angles[1]) * RotateZ(sceneObj.angles[2]);
+
+	mat4 model =  Translate(sceneObj.loc) * Scale(sceneObj.scale) * Rotation;
 
 	// Set the model-view matrix for the shaders
 	glUniformMatrix4fv(modelViewU, 1, GL_TRUE, view * model);
