@@ -709,10 +709,25 @@ void reshape(int width, int height) {
 
 	GLfloat nearDist = 0.01;
 
+	if (width > height){
+		projection = Frustum(-nearDist * (float) width / (float) height, nearDist * (float) width / (float) height,
+							 -nearDist, nearDist,
+							  nearDist, 100.0);
+	}
+	else{
+		projection = Frustum(-nearDist, nearDist,
+							 -nearDist*(float)height/(float)width, nearDist*(float)height/(float)width,
+							  nearDist, 100.0);
+	}
 
-	projection = Frustum(-nearDist * (float) width / (float) height,
-			nearDist * (float) width / (float) height, -nearDist, nearDist,
-			nearDist, 100.0);
+//    if (width > height)
+//        projection = Frustum(-0.2*(float)width/(float)height, 0.2*(float)width/(float)height,
+//                             -0.2, 0.2,
+//								0.2, 2.0);
+//    else
+//        projection = Frustum(-0.2, 0.2,
+//                             -0.2*(float)height/(float)width, 0.2*(float)height/(float)width,
+//                             0.2, 2.0);
 
 }
 
