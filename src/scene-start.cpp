@@ -363,7 +363,7 @@ void init(void) {
 	sceneObjs[1].loc = vec4(2.0, 1.0, 1.0, 1.0);
 	sceneObjs[1].scale = 0.1;
 	sceneObjs[1].texId = 0; // Plain texture
-	sceneObjs[1].brightness = 15.0; //0.2; // The light's brightness is 5 times this (below).
+	sceneObjs[1].brightness = 1.0; //0.2; // The light's brightness is 5 times this (below).
 
 	addObject(rand() % numMeshes); // A test mesh
 
