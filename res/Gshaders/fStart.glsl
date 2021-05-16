@@ -6,6 +6,8 @@ varying vec3 N; //fn
 varying vec3 Lvec; //fl
 varying vec3 pos; //fv
 
+vec4 color2;
+
 uniform vec3 AmbientProduct, DiffuseProduct, SpecularProduct;
 uniform mat4 ModelView;
 uniform mat4 Projection;
@@ -45,8 +47,8 @@ void main()
     vec3 globalAmbient = vec3(0.1, 0.1, 0.1);
 
 
-    gl_FragColor.rgb = globalAmbient  + attenuation*ambient + attenuation*diffuse + attenuation*specular; 
-    gl_FragColor.a = 1.0;
+    color2.rgb = globalAmbient  + attenuation*ambient + attenuation*diffuse; 
+    color2.a = 1.0;
 
-    gl_FragColor = gl_FragColor * texture2D( texture, texCoord * texScale );
+    gl_FragColor = color2 * texture2D( texture, texCoord * texScale ) + vec4(attenuation*specular, 1.0) ;
 }
