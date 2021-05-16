@@ -46,9 +46,9 @@ void main()
 	
 	vec3 globalAmbient = vec3(0.1,0.1,0.1);
 	
-	color.rgb = globalAmbient + attenuation * ambient + attenuation * diffuse + attenuation * specular;
+	color.rgb = globalAmbient + attenuation * ambient + attenuation * diffuse;
 	
 	color.a = 1.0;
 
-	gl_FragColor = color * texture2D(texture, texCoord * 2.0 * texScale);
+	gl_FragColor = color * texture2D(texture, texCoord * 2.0 * texScale) + vec4(attenuation * specular, 1.0);
 }
