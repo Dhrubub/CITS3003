@@ -338,7 +338,9 @@ void init(void) {
     sceneObjs[1].loc = vec4(2.0, 1.0, 1.0, 1.0);
     sceneObjs[1].scale = 0.1;
     sceneObjs[1].texId = 0; // Plain texture
-    sceneObjs[1].brightness = 0.2; // The light's brightness is 5 times this (below).
+
+    // EDIT: CHANGED FROM 0.2 TO 15
+    sceneObjs[1].brightness = 15.0; // The light's brightness is 5 times this (below).
 
     addObject(rand() % numMeshes); // A test mesh
 
@@ -372,6 +374,7 @@ void drawMesh(SceneObject sceneObj) {
     // Set the model matrix - this should combine translation, rotation and scaling based on what's
     // in the sceneObj structure (see near the top of the program).
 
+    // EDIT: PART B
     mat4 rotation = RotateX(-sceneObj.angles[0]) * RotateY(sceneObj.angles[1]) * RotateZ(sceneObj.angles[2]);
     mat4 model = Translate(sceneObj.loc) * Scale(sceneObj.scale) * rotation;
 
@@ -405,6 +408,7 @@ void display(void) {
     // Set the view matrix. To start with this just moves the camera
     // backwards.  You'll need to add appropriate rotations.
 
+    // EDIT: PART A
     mat4 rotation = RotateX(camRotUpAndOverDeg) * RotateY(camRotSidewaysDeg);
     view = Translate(0.0, 0.0, -viewDist) * rotation;
 
@@ -470,11 +474,13 @@ static void adjustBlueBrightness(vec2 bl_br) {
     sceneObjs[toolObj].brightness += bl_br[1];
 }
 
+// EDIT: PART C
 static void adjustAmbienceDiffuse(vec2 ab_df) {
     sceneObjs[toolObj].ambient += ab_df[0];
     sceneObjs[toolObj].diffuse += ab_df[1];
 }
 
+//EDIT: PART C
 static void adjustLightShine(vec2 li_sh) {
     sceneObjs[toolObj].specular += li_sh[0];
     sceneObjs[toolObj].shine += li_sh[1];
@@ -527,6 +533,7 @@ static void materialMenu(int id) {
                          adjustBlueBrightness, mat2(1, 0, 0, 1));
     }
         // You'll need to fill in the remaining menu items here.
+    // EDIT: PART C
     if (id == 20) {
         toolObj = currObject;
         setToolCallbacks(adjustAmbienceDiffuse, mat2(1, 0, 0, 1),
@@ -569,6 +576,8 @@ static void makeMenu() {
 
     int materialMenuId = glutCreateMenu(materialMenu);
     glutAddMenuEntry("R/G/B/All", 10);
+
+    // EDIT: PART D
     glutAddMenuEntry("IMPLEMENTED: Ambient/Diffuse/Specular/Shine", 20);
 
     int texMenuId = createArrayMenu(numTextures, textureMenuEntries, texMenu);
@@ -654,9 +663,10 @@ void reshape(int width, int height) {
     //         that the same part of the scene is visible across the width of
     //         the window.
 
+    // EDIT: PART D
     GLfloat nearDist = 0.01;
 
-    
+    // EDIT: PART E
     GLfloat right = nearDist;
     GLfloat top = nearDist;
 
@@ -668,12 +678,12 @@ void reshape(int width, int height) {
     height = float(height);
 
     if (width < height) {
-  		top = nearDist * height / width;
+  	    top = nearDist * height / width;
         bottom = -nearDist * height / width;
     }
     else {
-      right = nearDist * width / height;
-      left = -nearDist * width / height;
+        right = nearDist * width / height;
+        left = -nearDist * width / height;
     }
 
 
