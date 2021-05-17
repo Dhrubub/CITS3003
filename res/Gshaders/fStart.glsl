@@ -74,7 +74,7 @@ void main()
 	
 	vec3 globalAmbient = vec3(0.1,0.1,0.1);
 	
-	color.rgb = globalAmbient + 5.0 * (attenuation * ambient + attenuation * diffuse * attenuation * specular) + (intensity2);	
+	color.rgb = globalAmbient + 5.0 * attenuation * (ambient + diffuse + specular) + (intensity2);	
 	
 	color.a = 1.0;
 
