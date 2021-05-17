@@ -7,7 +7,11 @@ varying vec2 texCoord;
 uniform vec3 AmbientProduct, DiffuseProduct, SpecularProduct;
 uniform mat4 ModelView;
 uniform mat4 Projection;
+
 uniform vec4 LightPosition;
+uniform vec3 LightColor;
+uniform float LightBrightness;
+
 uniform float Shininess;
 
 uniform sampler2D texture;
@@ -31,14 +35,15 @@ void main()
 
 	vec3 N = normalize((ModelView * vec4(Normal, 0.0)).xyz);
 	
-	vec3 ambient = AmbientProduct;
+	vec3 ambient = (LightColor * LightBrightness) * AmbientProduct; // Light 1 ambient
 	
 	float Kd = max(dot(L, N), 0.0);
 	
-	vec3 diffuse = Kd * DiffuseProduct;
+	vec3 diffuse = Kd * (LightColor * LightBrightness) * DiffuseProduct;
 	
 	float Ks = pow(max(dot(N,H),0.0), Shininess);
-	vec3 specular = Ks * SpecularProduct;
+	
+	vec3 specular = Ks * LightBrightness * SpecularProduct; // Light 1 specular
 	
 	if (dot(L, N) < 0.0) {
 		specular = vec3(0.0,0.0,0.0);
