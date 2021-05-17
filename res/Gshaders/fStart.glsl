@@ -8,15 +8,18 @@ uniform vec3 AmbientProduct, DiffuseProduct, SpecularProduct;
 uniform mat4 ModelView;
 uniform mat4 Projection;
 
-uniform vec4 LightPosition;
+uniform vec4 LightPosition, LightPosition2;
 
 uniform float Shininess;
 
 uniform sampler2D texture;
 uniform float texScale;
 
+
 void main()
 {
+	vec3 materialSpecularColor = vec3(1.0, 1.0, 1.0);
+	
 	vec4 vpos = vec4(Position, 1.0);
 	
 	vec3 pos = (ModelView * vpos).xyz;
@@ -47,11 +50,34 @@ void main()
 		specular = vec3(0.0,0.0,0.0);
 	}
 	
+	float dirx = clamp(-LightPosition2.x, -3.0, 3.0);
+    float diry = clamp(-LightPosition2.y, -3.0, 3.0);
+    float dirz = clamp(-LightPosition2.z, -3.0, 3.0);
+    
+    vec4 LightDirection = vec4(dirx, diry, dirz, 0.0);
+    
+    vec3 L2 = normalize(-LightDirection).xyz; //to origin
+    vec3 E2 = normalize(-pos);  //to Camera
+    vec3 H2 = normalize(L2 + E2); //halfway vector
+    
+        //diffuse and specular terms
+    float Kdif2 = max(dot(N, L2), 0.0);
+    float Kspc2 = pow(max(dot(N, H2), 0.0), Shininess);
+    
+        //light 2 properties
+    vec3 ambient2 = AmbientProduct;
+    vec3 diffuse2 = DiffuseProduct * Kdif2;
+    vec3 specular2 = SpecularProduct * Kspc2 * materialSpecularColor;
+
+    vec3 intensity2 = (ambient2 + diffuse2 + specular2);
+    
+	
 	vec3 globalAmbient = vec3(0.1,0.1,0.1);
 	
-	color.rgb = globalAmbient + attenuation * ambient + attenuation * diffuse;
+	color.rgb = (globalAmbient + attenuation * ambient + attenuation * diffuse * attenuation * specular) + intensity2;	
 	
 	color.a = 1.0;
 
-	gl_FragColor = color * texture2D(texture, texCoord * 2.0 * texScale) + vec4(attenuation * specular, 1.0);
+	gl_FragColor = color * texture2D(texture, texCoord * 2.0 * texScale);
+	
 }
