@@ -23,7 +23,7 @@ void main()
 	
 	float lightDistance = length(Lvec);
 	
-	float attenuation = 1.0 / (0.01+ 1.0 * lightDistance + 0.25 * pow(lightDistance,2.0));
+	float attenuation = 1.0 / (1.0 + 1.0 * lightDistance + 0.25 * pow(lightDistance,2.0));
 	
 	vec3 L = normalize(Lvec);
 	vec3 E = normalize(-pos);
