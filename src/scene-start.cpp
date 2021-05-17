@@ -342,11 +342,12 @@ void init(void) {
     // EDIT: CHANGED FROM 0.2 TO 1.0
     sceneObjs[1].brightness = 1.0; // The light's brightness is 5 times this (below).
 
+    // PART I
     addObject(55); // Sphere for the second light
     sceneObjs[2].loc = vec4(-2.0, 1.0, 1.0, 1.0);
     sceneObjs[2].scale = 0.2;
     sceneObjs[2].texId = 0; // Plain texture
-    sceneObjs[2].brightness = 0.3; // The light's brightness is 5 times this (below).
+    sceneObjs[2].brightness = 0.1; // The light's brightness is 5 times this (below).
 
     addObject(rand() % numMeshes); // A test mesh
 
@@ -421,23 +422,27 @@ void display(void) {
     SceneObject lightObj1 = sceneObjs[1];
     vec4 lightPosition = view * lightObj1.loc;
 
+    // PART I
     SceneObject lightObj2 = sceneObjs[2];
     vec4 lightPosition2 = lightObj2.loc ;
 
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), 1, lightPosition);
 
+    // PART I
     glUniform4fv( glGetUniformLocation(shaderProgram, "LightPosition2"), 1, lightPosition2);
     CheckError();
 
     for (int i = 0; i < nObjects; i++) {
         SceneObject so = sceneObjs[i];
 
+        // PART I
         vec3 rgb = so.rgb * lightObj1.rgb * lightObj2.rgb * so.brightness * lightObj1.brightness * lightObj2.brightness * 2.0;
 
         // vec3 rgb = so.rgb * lightObj1.rgb * so.brightness * lightObj1.brightness * 2.0;
         glUniform3fv(glGetUniformLocation(shaderProgram, "AmbientProduct"), 1, so.ambient * rgb);
         CheckError();
         glUniform3fv(glGetUniformLocation(shaderProgram, "DiffuseProduct"), 1, so.diffuse * rgb);
+        // PART H
         glUniform3fv(glGetUniformLocation(shaderProgram, "SpecularProduct"), 1, so.specular * vec3(1.0, 1.0, 1.0));
         glUniform1f(glGetUniformLocation(shaderProgram, "Shininess"), so.shine);
         CheckError();
@@ -498,6 +503,7 @@ static void adjustLightShine(vec2 li_sh) {
     sceneObjs[toolObj].shine += li_sh[1];
 }
 
+// EDIT: PART I
 static void lightMenu(int id) {
     deactivateTool();
     if (id == 70) {
