@@ -456,8 +456,10 @@ void display(void) {
 	SceneObject lightObj1 = sceneObjs[1];
 	vec4 lightPosition = view * lightObj1.loc;
 
-	glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), 1,
-			lightPosition);
+	glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), 1,lightPosition);
+	glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness"), lightObj1.brightness);
+	glUniform3fv(glGetUniformLocation(shaderProgram, "LightColor"), 1, lightObj1.rgb);
+
 	CheckError();
 
 	for (int i = 0; i < nObjects; i++) {
