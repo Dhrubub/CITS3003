@@ -24,7 +24,7 @@ GLint windowHeight = 640, windowWidth = 960;
 // to modify (but, you can).
 #include "gnatidread.h"
 
-using namespace std;        // Import the C++ standard functions (e.g., min) 
+using namespace std;        // Import the C++ standard functions (e.g., min)
 
 
 // IDs for the GLSL program and GLSL variables.
@@ -147,7 +147,7 @@ void loadMeshIfNotAlreadyLoaded(int meshNumber) {
                  NULL, GL_STATIC_DRAW);
 
     int nVerts = mesh->mNumVertices;
-    // Next, we load the position and texCoord data in parts.    
+    // Next, we load the position and texCoord data in parts.
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 3 * nVerts, mesh->mVertices);
     glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * 3 * nVerts, sizeof(float) * 3 * nVerts, mesh->mTextureCoords[0]);
     glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * 6 * nVerts, sizeof(float) * 3 * nVerts, mesh->mNormals);
@@ -167,7 +167,7 @@ void loadMeshIfNotAlreadyLoaded(int meshNumber) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferId[0]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * mesh->mNumFaces * 3, elements.data(), GL_STATIC_DRAW);
 
-    // vPosition it actually 4D - the conversion sets the fourth dimension (i.e. w) to 1.0                 
+    // vPosition it actually 4D - the conversion sets the fourth dimension (i.e. w) to 1.0
     glVertexAttribPointer(vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
     glEnableVertexAttribArray(vPosition);
 
@@ -310,17 +310,17 @@ void init(void) {
     CheckError(); // Allocate texture objects
 
     // Load shaders and use the resulting shader program
-    shaderProgram = InitShader("res/Gshaders/vStart.glsl", "res/Gshaders/fStart.glsl");
+    shaderProgram = InitShader("res/shaders/vStart.glsl", "res/shaders/fStart.glsl");
 
     glUseProgram(shaderProgram);
     CheckError();
 
-    // Initialize the vertex position attribute from the vertex shader        
+    // Initialize the vertex position attribute from the vertex shader
     vPosition = glGetAttribLocation(shaderProgram, "vPosition");
     vNormal = glGetAttribLocation(shaderProgram, "vNormal");
     CheckError();
 
-    // Likewise, initialize the vertex texture coordinates attribute.    
+    // Likewise, initialize the vertex texture coordinates attribute.
     vTexCoord = glGetAttribLocation(shaderProgram, "vTexCoord");
     CheckError();
 
@@ -341,6 +341,12 @@ void init(void) {
 
     // EDIT: CHANGED FROM 0.2 TO 1.0
     sceneObjs[1].brightness = 1.0; // The light's brightness is 5 times this (below).
+
+    addObject(55); // Sphere for the second light
+    sceneObjs[2].loc = vec4(-2.0, 1.0, 1.0, 1.0);
+    sceneObjs[2].scale = 0.2;
+    sceneObjs[2].texId = 0; // Plain texture
+    sceneObjs[2].brightness = 0.3; // The light's brightness is 5 times this (below).
 
     addObject(rand() % numMeshes); // A test mesh
 
@@ -415,18 +421,24 @@ void display(void) {
     SceneObject lightObj1 = sceneObjs[1];
     vec4 lightPosition = view * lightObj1.loc;
 
-    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"),
-                 1, lightPosition);
+    SceneObject lightObj2 = sceneObjs[2];
+    vec4 lightPosition2 = lightObj2.loc ;
+
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), 1, lightPosition);
+
+    glUniform4fv( glGetUniformLocation(shaderProgram, "LightPosition2"), 1, lightPosition2);
     CheckError();
 
     for (int i = 0; i < nObjects; i++) {
         SceneObject so = sceneObjs[i];
 
-        vec3 rgb = so.rgb * lightObj1.rgb * so.brightness * lightObj1.brightness * 2.0;
+        vec3 rgb = so.rgb * lightObj1.rgb * lightObj2.rgb * so.brightness * lightObj1.brightness * lightObj2.brightness * 2.0;
+
+        // vec3 rgb = so.rgb * lightObj1.rgb * so.brightness * lightObj1.brightness * 2.0;
         glUniform3fv(glGetUniformLocation(shaderProgram, "AmbientProduct"), 1, so.ambient * rgb);
         CheckError();
         glUniform3fv(glGetUniformLocation(shaderProgram, "DiffuseProduct"), 1, so.diffuse * rgb);
-        glUniform3fv(glGetUniformLocation(shaderProgram, "SpecularProduct"), 1, so.specular * rgb);
+        glUniform3fv(glGetUniformLocation(shaderProgram, "SpecularProduct"), 1, so.specular * vec3(1.0, 1.0, 1.0));
         glUniform1f(glGetUniformLocation(shaderProgram, "Shininess"), so.shine);
         CheckError();
 
@@ -492,11 +504,24 @@ static void lightMenu(int id) {
         toolObj = 1;
         setToolCallbacks(adjustLocXZ, camRotZ(),
                          adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
-    } else if (id >= 71 && id <= 74) {
+    }
+    else if (id >= 71 && id <= 74) {
         toolObj = 1;
         setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
                          adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
-    } else {
+    }
+
+	else if (id == 80) {
+		toolObj = 2;
+		setToolCallbacks(adjustLocXZ, camRotZ(),
+						 adjustBrightnessY, mat2( 1.0, 0.0, 0.0, 10.0) );
+	}
+	else if (id >= 81 && id <= 84) {
+		toolObj = 2;
+		setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
+						 adjustBlueBrightness, mat2(1.0, 0, 0, 1.0) );
+	}
+    else {
         printf("Error in lightMenu\n");
         exit(1);
     }
@@ -657,7 +682,7 @@ void reshape(int width, int height) {
 
     // You'll need to modify this so that the view is similar to that in the
     // sample solution.
-    // In particular: 
+    // In particular:
     //     - the view should include "closer" visible objects (slightly tricky)
     //     - when the width is less than the height, the view should adjust so
     //         that the same part of the scene is visible across the width of
