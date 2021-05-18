@@ -310,7 +310,7 @@ void init(void) {
     CheckError(); // Allocate texture objects
 
     // Load shaders and use the resulting shader program
-    shaderProgram = InitShader("res/shaders/vStart.glsl", "res/shaders/fStart.glsl");
+    shaderProgram = InitShader("res/Gshaders/vStart.glsl", "res/Gshaders/fStart.glsl");
 
     glUseProgram(shaderProgram);
     CheckError();
@@ -421,21 +421,21 @@ void display(void) {
     SceneObject lightObj1 = sceneObjs[1];
     vec4 lightPosition = view * lightObj1.loc;
 
-    // PART I. Second light
+    // EDIT PART I Second light
     SceneObject lightObj2 = sceneObjs[2];
-    vec4 lightPosition2 = lightObj2.loc ;
+    vec4 lightPosition2 = rotation * lightObj2.loc ;
 
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), 1, lightPosition); CheckError();
     glUniform4fv( glGetUniformLocation(shaderProgram, "LightPosition2"), 1, lightPosition2);
 
-    // PART J.1. Passing the light locations
+    // EDIT: PART J.1 Passing the light locations
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightObj"), 1, lightObj1.loc); CheckError();
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightObj2"), 1, lightObj2.loc); CheckError();
 
     glUniform3fv(glGetUniformLocation(shaderProgram, "LightColor"), 1, lightObj1.rgb); CheckError();
     glUniform3fv(glGetUniformLocation(shaderProgram, "LightColor2"), 1, lightObj2.rgb); CheckError();
 
-    // PART H. Shine requires brightness to be passed
+    // EDIT: PART H Shine requires brightness to be passed
     glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness"), lightObj1.brightness); CheckError();
     glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness2"), lightObj2.brightness); CheckError();
 
