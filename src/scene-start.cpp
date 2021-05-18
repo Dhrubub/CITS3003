@@ -315,7 +315,7 @@ static void deleteObject(int id) {
 
     // Set to another object if available
     if (nObjects - delObjects > 4) {
-        currObject = 3;
+        currObject = 4;
     }
     else {
         currObject = -1;
