@@ -69,15 +69,11 @@ void main()
 
 	
 	vec3 globalAmbient = vec3(0.1,0.1,0.1);
-	
-	color.rgb = globalAmbient + attenuation * ambient + attenuation * diffuse;
-	
-	color.a = 1.0;
 
 	vec3 colorLight1 = ambient + diffuse + specular;
 	vec3 colorLight2 = ambient2 + diffuse2 + specular2;
 
 	vec3 colorCombined = globalAmbient + colorLight1 * 5.0 + colorLight2 * 1.5;
 
-	gl_FragColor = color * texture2D(texture, texCoord * 2.0 * texScale) * vec4(colorCombined, 1.0);
+	gl_FragColor = texture2D(texture, texCoord * 2.0 * texScale) * vec4(colorCombined, 1.0);
 }

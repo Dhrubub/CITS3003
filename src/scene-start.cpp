@@ -339,7 +339,7 @@ void init(void) {
     sceneObjs[1].scale = 0.1;
     sceneObjs[1].texId = 0; // Plain texture
     // EDIT: CHANGED FROM 0.2 TO 1.0
-    sceneObjs[1].brightness = 1.0; // The light's brightness is 5 times this (below).
+    sceneObjs[1].brightness = 0.2; // The light's brightness is 5 times this (below).
 
     // EDIT: PART I
     // Light is directional rather than positonal
@@ -347,7 +347,7 @@ void init(void) {
     sceneObjs[2].loc = vec4(2.5, 1.0, 1.0, 0.0);
     sceneObjs[2].scale = 0.3;
     sceneObjs[2].texId = 0; // Plain texture
-    sceneObjs[2].brightness = 1.0; // The light's brightness is 5 times this (below).
+    sceneObjs[2].brightness = 0.2; // The light's brightness is 5 times this (below).
 
 
 
