@@ -24,7 +24,7 @@ GLint windowHeight = 640, windowWidth = 960;
 // to modify (but, you can).
 #include "gnatidread.h"
 
-using namespace std;        // Import the C++ standard functions (e.g., min) 
+using namespace std;        // Import the C++ standard functions (e.g., min)
 
 
 // IDs for the GLSL program and GLSL variables.
@@ -81,7 +81,7 @@ int toolObj = -1;    // The object currently being modified
 
 //----------------------------------------------------------------------------
 //
-// Loads a texture by number, and binds it for later use.    
+// Loads a texture by number, and binds it for later use.
 void loadTextureIfNotAlreadyLoaded(int i) {
     if (textures[i] != NULL) return; // The texture is already loaded.
 
@@ -115,8 +115,8 @@ void loadTextureIfNotAlreadyLoaded(int i) {
 
 //------Mesh loading----------------------------------------------------------
 //
-// The following uses the Open Asset Importer library via loadMesh in 
-// gnatidread.h to load models in .x format, including vertex positions, 
+// The following uses the Open Asset Importer library via loadMesh in
+// gnatidread.h to load models in .x format, including vertex positions,
 // normals, and texture coordinates.
 // You shouldn't need to modify this - it's called from drawMesh below.
 
@@ -147,7 +147,7 @@ void loadMeshIfNotAlreadyLoaded(int meshNumber) {
                  NULL, GL_STATIC_DRAW);
 
     int nVerts = mesh->mNumVertices;
-    // Next, we load the position and texCoord data in parts.    
+    // Next, we load the position and texCoord data in parts.
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 3 * nVerts, mesh->mVertices);
     glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * 3 * nVerts, sizeof(float) * 3 * nVerts, mesh->mTextureCoords[0]);
     glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * 6 * nVerts, sizeof(float) * 3 * nVerts, mesh->mNormals);
@@ -167,7 +167,7 @@ void loadMeshIfNotAlreadyLoaded(int meshNumber) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferId[0]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * mesh->mNumFaces * 3, elements.data(), GL_STATIC_DRAW);
 
-    // vPosition it actually 4D - the conversion sets the fourth dimension (i.e. w) to 1.0                 
+    // vPosition it actually 4D - the conversion sets the fourth dimension (i.e. w) to 1.0
     glVertexAttribPointer(vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
     glEnableVertexAttribArray(vPosition);
 
@@ -310,17 +310,17 @@ void init(void) {
     CheckError(); // Allocate texture objects
 
     // Load shaders and use the resulting shader program
-    shaderProgram = InitShader("res/Gshaders/vStart.glsl", "res/Gshaders/fStart.glsl");
+    shaderProgram = InitShader("res/shaders/vStart.glsl", "res/shaders/fStart.glsl");
 
     glUseProgram(shaderProgram);
     CheckError();
 
-    // Initialize the vertex position attribute from the vertex shader        
+    // Initialize the vertex position attribute from the vertex shader
     vPosition = glGetAttribLocation(shaderProgram, "vPosition");
     vNormal = glGetAttribLocation(shaderProgram, "vNormal");
     CheckError();
 
-    // Likewise, initialize the vertex texture coordinates attribute.    
+    // Likewise, initialize the vertex texture coordinates attribute.
     vTexCoord = glGetAttribLocation(shaderProgram, "vTexCoord");
     CheckError();
 
@@ -338,17 +338,14 @@ void init(void) {
     sceneObjs[1].loc = vec4(2.0, 1.0, 1.0, 1.0);
     sceneObjs[1].scale = 0.1;
     sceneObjs[1].texId = 0; // Plain texture
-    // EDIT: CHANGED FROM 0.2 TO 1.0
-    sceneObjs[1].brightness = 0.4; // The light's brightness is 5 times this (below).
 
-    // EDIT: PART I
-    // Light is directional rather than positonal
+    sceneObjs[1].brightness = 0.2; // The light's brightness is 5 times this (below).
+
     addObject(55); // Sphere for the second light
-    sceneObjs[2].loc = vec4(2.5, 1.0, 1.0, 0.0);
-    sceneObjs[2].scale = 0.3;
+    sceneObjs[2].loc = vec4(-2.0, 1.0, 1.0, 1.0);
+    sceneObjs[2].scale = 0.2;
     sceneObjs[2].texId = 0; // Plain texture
-    sceneObjs[2].brightness = 0.4; // The light's brightness is 5 times this (below).
-
+    sceneObjs[2].brightness = 0.3; // The light's brightness is 5 times this (below).
 
 
     addObject(rand() % numMeshes); // A test mesh
@@ -424,26 +421,32 @@ void display(void) {
     SceneObject lightObj1 = sceneObjs[1];
     vec4 lightPosition = view * lightObj1.loc;
 
+    // PART I. Second light
     SceneObject lightObj2 = sceneObjs[2];
-    vec4 lightPosition2 = lightObj2.loc;
+    vec4 lightPosition2 = lightObj2.loc ;
 
-    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"),
-                 1, lightPosition);
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), 1, lightPosition); CheckError();
+    glUniform4fv( glGetUniformLocation(shaderProgram, "LightPosition2"), 1, lightPosition2);
 
-    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition2"),
-                 1, lightPosition2);
-    CheckError();
+    // PART J.1. Passing the light locations
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightObj"), 1, lightObj1.loc); CheckError();
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightObj2"), 1, lightObj2.loc); CheckError();
 
-    for (int i = 0; i < nObjects; i++) {
+    glUniform3fv(glGetUniformLocation(shaderProgram, "LightColor"), 1, lightObj1.rgb); CheckError();
+    glUniform3fv(glGetUniformLocation(shaderProgram, "LightColor2"), 1, lightObj2.rgb); CheckError();
+
+    // PART H. Shine requires brightness to be passed
+    glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness"), lightObj1.brightness); CheckError();
+    glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness2"), lightObj2.brightness); CheckError();
+
+    for (int i=0; i < nObjects; i++) {
         SceneObject so = sceneObjs[i];
 
-        vec3 rgb = so.rgb * lightObj1.rgb * lightObj2.rgb * so.brightness * lightObj1.brightness * lightObj2.brightness * 2.0;
-        glUniform3fv(glGetUniformLocation(shaderProgram, "AmbientProduct"), 1, so.ambient * rgb);
-        CheckError();
+        vec3 rgb = so.rgb * so.brightness * 4.0; // Increased base brightness, mentioned in the Overview section
+        glUniform3fv(glGetUniformLocation(shaderProgram, "AmbientProduct"), 1, so.ambient * rgb); CheckError();
         glUniform3fv(glGetUniformLocation(shaderProgram, "DiffuseProduct"), 1, so.diffuse * rgb);
         glUniform3fv(glGetUniformLocation(shaderProgram, "SpecularProduct"), 1, so.specular * vec3(1.0, 1.0, 1.0));
-        glUniform1f(glGetUniformLocation(shaderProgram, "Shininess"), so.shine);
-        CheckError();
+        glUniform1f(glGetUniformLocation(shaderProgram, "Shininess"), so.shine); CheckError();
 
         drawMesh(sceneObjs[i]);
     }
@@ -496,9 +499,9 @@ static void adjustAmbienceDiffuse(vec2 ab_df) {
 }
 
 //EDIT: PART C
-static void adjustSpecularShine(vec2 sp_sh) {
-    sceneObjs[toolObj].specular += sp_sh[0];
-    sceneObjs[toolObj].shine += sp_sh[1];
+static void adjustLightShine(vec2 li_sh) {
+    sceneObjs[toolObj].specular += li_sh[0];
+    sceneObjs[toolObj].shine += li_sh[1];
 }
 
 static void lightMenu(int id) {
@@ -507,15 +510,17 @@ static void lightMenu(int id) {
         toolObj = 1;
         setToolCallbacks(adjustLocXZ, camRotZ(),
                          adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
+
     } else if (id >= 71 && id <= 74) {
         toolObj = 1;
         setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
                          adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
-    } else if (id == 80) {
+    } else if (id == 80) { // Move Light 2
         toolObj = 2;
         setToolCallbacks(adjustLocXZ, camRotZ(),
                          adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
-    } else if (id >= 81 && id <= 84) {
+
+    } else if (id >= 81 && id <= 84) { // R/G/B/ALL Light 2
         toolObj = 2;
         setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
                          adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
@@ -560,7 +565,7 @@ static void materialMenu(int id) {
     if (id == 20) {
         toolObj = currObject;
         setToolCallbacks(adjustAmbienceDiffuse, mat2(1, 0, 0, 1),
-                         adjustSpecularShine, mat2(1, 0, 0, 1));
+                         adjustLightShine, mat2(1, 0, 0, 1));
 
     }
     else {
@@ -607,10 +612,10 @@ static void makeMenu() {
     int groundMenuId = createArrayMenu(numTextures, textureMenuEntries, groundMenu);
 
     int lightMenuId = glutCreateMenu(lightMenu);
-    glutAddMenuEntry("Move Light 1", 70);
-    glutAddMenuEntry("R/G/B/All Light 1", 71);
-    glutAddMenuEntry("Move Light 2", 80);
-    glutAddMenuEntry("R/G/B/All Light 2", 81);
+    glutAddMenuEntry("Move Light 1",70);
+    glutAddMenuEntry("R/G/B/All Light 1",71);
+    glutAddMenuEntry("Move Light 2",80);
+    glutAddMenuEntry("R/G/B/All Light 2",81);
 
     glutCreateMenu(mainmenu);
     glutAddMenuEntry("Rotate/Move Camera", 50);
@@ -680,7 +685,7 @@ void reshape(int width, int height) {
 
     // You'll need to modify this so that the view is similar to that in the
     // sample solution.
-    // In particular: 
+    // In particular:
     //     - the view should include "closer" visible objects (slightly tricky)
     //     - when the width is less than the height, the view should adjust so
     //         that the same part of the scene is visible across the width of
