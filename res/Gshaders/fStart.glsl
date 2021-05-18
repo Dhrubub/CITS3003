@@ -92,9 +92,10 @@ void main()
 	// Light Three ------------------------------------------------------------------------
 	// Direction
 	vec3 colorLight3 = vec3(0.0, 0.0, 0.0);
-	vec3 Lvec3 = LightPosition3.xyz - pos -spotlightDistance;
+	vec3 Lvec3 = LightPosition3.xyz - pos - vec3(spotlightDistance, 0, spotlightDistance);
 
-	float theta = dot(N + vec3(spotlightX, 0, spotlightZ), normalize(-Lvec3));
+	vec3 lightDir = N + vec3(spotlightX, 0, -spotlightZ);
+	float theta = dot(lightDir , normalize(-Lvec3));
 	
 
 
