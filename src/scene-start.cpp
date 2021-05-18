@@ -724,7 +724,7 @@ static void makeMenu() {
     int materialMenuId = glutCreateMenu(materialMenu);
     glutAddMenuEntry("R/G/B/All", 10);
 
-    // EDIT: PART D
+    // EDIT: PART C
     glutAddMenuEntry("IMPLEMENTED: Ambient/Diffuse/Specular/Shine", 20);
 
     int texMenuId = createArrayMenu(numTextures, textureMenuEntries, texMenu);
