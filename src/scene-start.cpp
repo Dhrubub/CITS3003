@@ -400,39 +400,47 @@ void drawMesh(SceneObject sceneObj) {
 //----------------------------------------------------------------------------
 
 void display(void) {
-    numDisplayCalls++;
+ numDisplayCalls++;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     CheckError(); // May report a harmless GL_INVALID_OPERATION with GLEW on the first frame
 
-    // Set the view matrix. To start with this just moves the camera
-    // backwards.  You'll need to add appropriate rotations.
-
-    // EDIT: PART A
-    mat4 rotation = RotateX(camRotUpAndOverDeg) * RotateY(camRotSidewaysDeg);
-    view = Translate(0.0, 0.0, -viewDist) * rotation;
+    // PART A. Set the view matrix
+    mat4 rotate = RotateX(camRotUpAndOverDeg) * RotateY(camRotSidewaysDeg);
+    view = Translate(0.0, 0.0, -viewDist) * rotate;
 
     SceneObject lightObj1 = sceneObjs[1];
     vec4 lightPosition = view * lightObj1.loc;
 
-    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"),
-                 1, lightPosition);
-    CheckError();
+    // PART I. Second light
+    SceneObject lightObj2 = sceneObjs[2];
+    vec4 lightPosition2 = rotate * lightObj2.loc;
 
-    for (int i = 0; i < nObjects; i++) {
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), 1, lightPosition); CheckError();
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition2"), 1, lightPosition2); CheckError();
+
+    // PART J.1. Passing the light locations
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightObj"), 1, lightObj1.loc); CheckError();
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightObj2"), 1, lightObj2.loc); CheckError();
+
+    glUniform3fv(glGetUniformLocation(shaderProgram, "LightColor"), 1, lightObj1.rgb); CheckError();
+    glUniform3fv(glGetUniformLocation(shaderProgram, "LightColor2"), 1, lightObj2.rgb); CheckError();
+
+    // PART H. Shine requires brightness to be passed
+    glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness"), lightObj1.brightness); CheckError();
+    glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness2"), lightObj2.brightness); CheckError();
+
+    for (int i=0; i < nObjects; i++) {
         SceneObject so = sceneObjs[i];
 
-        vec3 rgb = so.rgb * lightObj1.rgb * so.brightness * lightObj1.brightness * 2.0;
-        glUniform3fv(glGetUniformLocation(shaderProgram, "AmbientProduct"), 1, so.ambient * rgb);
-        CheckError();
+        vec3 rgb = so.rgb * so.brightness * 4.0; // Increased base brightness, mentioned in the Overview section
+        glUniform3fv(glGetUniformLocation(shaderProgram, "AmbientProduct"), 1, so.ambient * rgb); CheckError();
         glUniform3fv(glGetUniformLocation(shaderProgram, "DiffuseProduct"), 1, so.diffuse * rgb);
         glUniform3fv(glGetUniformLocation(shaderProgram, "SpecularProduct"), 1, so.specular * rgb);
-        glUniform1f(glGetUniformLocation(shaderProgram, "Shininess"), so.shine);
-        CheckError();
+        glUniform1f(glGetUniformLocation(shaderProgram, "Shininess"), so.shine); CheckError();
 
         drawMesh(sceneObjs[i]);
     }
-
     glutSwapBuffers();
 }
 
@@ -496,6 +504,16 @@ static void lightMenu(int id) {
         toolObj = 1;
         setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
                          adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
+	} else if (id == 80) {
+		toolObj = 2;
+        setToolCallbacks(adjustLocXZ, camRotZ(),
+                         adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
+
+	} else if (id >= 81 && id <= 84) { // R/G/B/ALL Light 2
+        toolObj = 2;
+        setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
+                         adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
+
     } else {
         printf("Error in lightMenu\n");
         exit(1);
