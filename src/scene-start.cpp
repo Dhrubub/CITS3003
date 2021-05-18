@@ -532,9 +532,12 @@ static void adjustLightShine(vec2 li_sh) {
     sceneObjs[toolObj].shine += li_sh[1];
 }
 
-static void adjustAngleCutoffAndDirection(vec2 ac) {
+static void adjustSpotAngleCutoff(vec2 ac) {
 	angleCutOff += ac[0];
-	sceneObjs[toolObj].loc += ac[1];
+}
+
+static void adjustSpotDirection(vec2 d){
+	sceneObjs[toolObj].loc += d[0];
 }
 
 static void lightMenu(int id) {
@@ -570,8 +573,8 @@ static void lightMenu(int id) {
     }
     else if (id == 600) { // Adjust angle cutoff for light 3
     	toolObj = 3;
-        setToolCallbacks(adjustAngleCutoffAndDirection, mat2(1.0, 0, 0, 1.0),
-        		adjustAngleCutoffAndDirection, mat2(1.0, 0, 0, 1.0));
+        setToolCallbacks(adjustSpotAngleCutoff, mat2(1.0, 1.0, 1.0, 1.0),
+        		adjustSpotDirection, mat2(1.0, 1.0, 1.0, 1.0));
     }
     else {
         printf("Error in lightMenu\n");
