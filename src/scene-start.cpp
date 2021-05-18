@@ -457,6 +457,7 @@ void drawMesh(SceneObject sceneObj) {
 }
 
 //----------------------------------------------------------------------------
+float spotlightDirection = 0;
 
 void display(void) {
     numDisplayCalls++;
@@ -500,7 +501,7 @@ void display(void) {
     glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness2"), lightObj2.brightness); CheckError();
     glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness3"), lightObj3.brightness); CheckError();
 
-    glUniform1f(glGetUniformLocation(shaderProgram, "cutOff3"), cos(12.5)); CheckError();
+    glUniform1f(glGetUniformLocation(shaderProgram, "spotlightDirection"), spotlightDirection); CheckError();
 
     for (int i=0; i < nObjects; i++) {
         SceneObject so = sceneObjs[i];
@@ -565,9 +566,14 @@ static void adjustAmbienceDiffuse(vec2 ab_df) {
 }
 
 //EDIT: PART C
-static void adjustLightShine(vec2 li_sh) {
-    sceneObjs[toolObj].specular += li_sh[0];
-    sceneObjs[toolObj].shine += li_sh[1];
+static void adjustSpecularShine(vec2 sp_sh) {
+    sceneObjs[toolObj].specular += sp_sh[0];
+    sceneObjs[toolObj].shine += sp_sh[1];
+}
+
+
+static void adjustIllumination(vec2 il) {
+    spotlightDirection += il[0];
 }
 
 static void lightMenu(int id) {
@@ -591,15 +597,20 @@ static void lightMenu(int id) {
         setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
                          adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
     
-    } else if (id == 90) { // Move Light 3
+    } else if (id == 500) { // Move Light 3
         toolObj = 3;
         setToolCallbacks(adjustLocXZ, camRotZ(),
                          adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
 
-    } else if (id >= 91 && id <= 94) { // R/G/B/ALL Light 3
+    } else if (id >= 501 && id <= 504) { // R/G/B/ALL Light 3
         toolObj = 3;
         setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
                          adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
+    
+    } else if (id == 520) { // Move Illumination Light 3
+        toolObj = 3;
+        setToolCallbacks(adjustIllumination, mat2(1.0, 0, 0, 1.0),
+                         adjustIllumination, mat2(1.0, 0, 0, 1.0));
     } else {
         printf("Error in lightMenu\n");
         exit(1);
@@ -641,7 +652,7 @@ static void materialMenu(int id) {
     if (id == 20) {
         toolObj = currObject;
         setToolCallbacks(adjustAmbienceDiffuse, mat2(1, 0, 0, 1),
-                         adjustLightShine, mat2(1, 0, 0, 1));
+                         adjustSpecularShine, mat2(1, 0, 0, 1));
 
     }
     else {
@@ -704,8 +715,9 @@ static void makeMenu() {
     glutAddMenuEntry("R/G/B/All Light 1",71);
     glutAddMenuEntry("Move Light 2",80);
     glutAddMenuEntry("R/G/B/All Light 2",81);
-    glutAddMenuEntry("Move Light 3",90);
-    glutAddMenuEntry("R/G/B/All Light 3",91);
+    glutAddMenuEntry("Move Light 3",500);
+    glutAddMenuEntry("R/G/B/All Light 3",501);
+    glutAddMenuEntry("Move Illumination Light 3", 520);
 
     // EDIT: PART J
     int selectObjMenuId = glutCreateMenu(selectObjMenu);
