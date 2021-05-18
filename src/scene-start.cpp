@@ -27,6 +27,9 @@ GLint windowHeight = 640, windowWidth = 960;
 using namespace std;        // Import the C++ standard functions (e.g., min)
 
 
+// Part J
+float angleCutOff = 0.25;
+
 // IDs for the GLSL program and GLSL variables.
 GLuint shaderProgram; // The number identifying the GLSL shader program
 GLuint vPosition, vNormal, vTexCoord; // IDs for vshader input vars (from glGetAttribLocation)
@@ -41,7 +44,7 @@ mat4 view; // View matrix - set in the display function.
 
 // These are used to set the window title
 char lab[] = "Project1";
-char *programName = NULL; // Set in main 
+char *programName = NULL; // Set in main
 int numDisplayCalls = 0; // Used to calculate the number of frames per second
 
 //------Meshes----------------------------------------------------------------
@@ -78,10 +81,11 @@ SceneObject sceneObjs[maxObjects]; // An array storing the objects currently in 
 int nObjects = 0;    // How many objects are currenly in the scene.
 int currObject = -1; // The current object
 int toolObj = -1;    // The object currently being modified
+int delObjects = 0; // How many deleted objects
 
 //----------------------------------------------------------------------------
 //
-// Loads a texture by number, and binds it for later use.    
+// Loads a texture by number, and binds it for later use.
 void loadTextureIfNotAlreadyLoaded(int i) {
     if (textures[i] != NULL) return; // The texture is already loaded.
 
@@ -115,8 +119,8 @@ void loadTextureIfNotAlreadyLoaded(int i) {
 
 //------Mesh loading----------------------------------------------------------
 //
-// The following uses the Open Asset Importer library via loadMesh in 
-// gnatidread.h to load models in .x format, including vertex positions, 
+// The following uses the Open Asset Importer library via loadMesh in
+// gnatidread.h to load models in .x format, including vertex positions,
 // normals, and texture coordinates.
 // You shouldn't need to modify this - it's called from drawMesh below.
 
@@ -253,6 +257,8 @@ static void doRotate() {
                      adjustcamSideUp, mat2(400, 0, 0, -90));
 }
 
+static void makeMenu(); // PART J.2. Selection menu update. Prevent compilation erorr
+
 //------Add an object to the scene--------------------------------------------
 
 static void addObject(int id) {
@@ -288,6 +294,8 @@ static void addObject(int id) {
     setToolCallbacks(adjustLocXZ, camRotZ(),
                      adjustScaleY, mat2(0.05, 0, 0, 10.0));
     glutPostRedisplay();
+
+    makeMenu(); // PART J.2. Object selection sub-menu needs to be updated
 }
 
 //------The init function-----------------------------------------------------
@@ -339,15 +347,20 @@ void init(void) {
     sceneObjs[1].scale = 0.1;
     sceneObjs[1].texId = 0; // Plain texture
 
-    // EDIT: CHANGED FROM 0.2 TO 1.0
-    sceneObjs[1].brightness = 1.0; // The light's brightness is 5 times this (below).
+    sceneObjs[1].brightness = 0.2; // The light's brightness is 5 times this (below).
 
-    // PART I
     addObject(55); // Sphere for the second light
     sceneObjs[2].loc = vec4(-2.0, 1.0, 1.0, 1.0);
     sceneObjs[2].scale = 0.2;
     sceneObjs[2].texId = 0; // Plain texture
-    sceneObjs[2].brightness = 0.1; // The light's brightness is 5 times this (below).
+    sceneObjs[2].brightness = 0.3; // The light's brightness is 5 times this (below).
+
+    // PART J
+    addObject(55); // Sphere for the third spotlight
+    sceneObjs[3].loc = vec4(1.0, 1.0, 1.0, 1.0);
+    sceneObjs[3].scale = 0.4;
+    sceneObjs[3].texId = 0; // Plain texture
+    sceneObjs[3].brightness = 0.3; // The light's brightness is 5 times this (below).
 
     addObject(rand() % numMeshes); // A test mesh
 
@@ -422,30 +435,45 @@ void display(void) {
     SceneObject lightObj1 = sceneObjs[1];
     vec4 lightPosition = view * lightObj1.loc;
 
-    // PART I
+    // EDIT PART I Second light
     SceneObject lightObj2 = sceneObjs[2];
-    vec4 lightPosition2 = lightObj2.loc ;
+    vec4 lightPosition2 = rotation * lightObj2.loc ;
 
-    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), 1, lightPosition);
+    // PART J
+    SceneObject lightObj3 = sceneObjs[3];
+    vec4 lightPosition3 = view * lightObj3.loc ;
 
-    // PART I
+
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), 1, lightPosition); CheckError();
     glUniform4fv( glGetUniformLocation(shaderProgram, "LightPosition2"), 1, lightPosition2);
-    CheckError();
+    glUniform4fv( glGetUniformLocation(shaderProgram, "LightPosition3"), 1, lightPosition3);
 
-    for (int i = 0; i < nObjects; i++) {
+
+    // EDIT: PART J.1 Passing the light locations
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightObj"), 1, lightObj1.loc); CheckError();
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightObj2"), 1, lightObj2.loc); CheckError();
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightObj3"), 1, lightObj3.loc); CheckError();
+
+    glUniform3fv(glGetUniformLocation(shaderProgram, "LightColor"), 1, lightObj1.rgb); CheckError();
+    glUniform3fv(glGetUniformLocation(shaderProgram, "LightColor2"), 1, lightObj2.rgb); CheckError();
+    glUniform3fv(glGetUniformLocation(shaderProgram, "LightColor3"), 1, lightObj3.rgb); CheckError();
+
+
+    // EDIT: PART H Shine requires brightness to be passed
+    glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness"), lightObj1.brightness); CheckError();
+    glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness2"), lightObj2.brightness); CheckError();
+    glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness3"), lightObj3.brightness); CheckError();
+
+    glUniform1f(glGetUniformLocation(shaderProgram, "angleCutOff"), angleCutOff); CheckError();
+
+    for (int i=0; i < nObjects; i++) {
         SceneObject so = sceneObjs[i];
 
-        // PART I
-        vec3 rgb = so.rgb * lightObj1.rgb * lightObj2.rgb * so.brightness * lightObj1.brightness * lightObj2.brightness * 2.0;
-
-        // vec3 rgb = so.rgb * lightObj1.rgb * so.brightness * lightObj1.brightness * 2.0;
-        glUniform3fv(glGetUniformLocation(shaderProgram, "AmbientProduct"), 1, so.ambient * rgb);
-        CheckError();
+        vec3 rgb = so.rgb * so.brightness * 4.0; // Increased base brightness, mentioned in the Overview section
+        glUniform3fv(glGetUniformLocation(shaderProgram, "AmbientProduct"), 1, so.ambient * rgb); CheckError();
         glUniform3fv(glGetUniformLocation(shaderProgram, "DiffuseProduct"), 1, so.diffuse * rgb);
-        // PART H
         glUniform3fv(glGetUniformLocation(shaderProgram, "SpecularProduct"), 1, so.specular * vec3(1.0, 1.0, 1.0));
-        glUniform1f(glGetUniformLocation(shaderProgram, "Shininess"), so.shine);
-        CheckError();
+        glUniform1f(glGetUniformLocation(shaderProgram, "Shininess"), so.shine); CheckError();
 
         drawMesh(sceneObjs[i]);
     }
@@ -468,6 +496,7 @@ static void texMenu(int id) {
         sceneObjs[currObject].texId = id;
         glutPostRedisplay();
     }
+    makeMenu(); // [Part J] Object selection name update
 }
 
 static void groundMenu(int id) {
@@ -503,30 +532,47 @@ static void adjustLightShine(vec2 li_sh) {
     sceneObjs[toolObj].shine += li_sh[1];
 }
 
-// EDIT: PART I
+static void adjustAngleCutoffAndDirection(vec2 ac) {
+	angleCutOff += ac[0];
+	sceneObjs[toolObj].loc += ac[1];
+}
+
 static void lightMenu(int id) {
     deactivateTool();
     if (id == 70) {
         toolObj = 1;
         setToolCallbacks(adjustLocXZ, camRotZ(),
                          adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
-    }
-    else if (id >= 71 && id <= 74) {
+
+    } else if (id >= 71 && id <= 74) {
         toolObj = 1;
         setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
                          adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
-    }
+    } else if (id == 80) { // Move Light 2
+        toolObj = 2;
+        setToolCallbacks(adjustLocXZ, camRotZ(),
+                         adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
 
-	else if (id == 80) {
-		toolObj = 2;
-		setToolCallbacks(adjustLocXZ, camRotZ(),
-						 adjustBrightnessY, mat2( 1.0, 0.0, 0.0, 10.0) );
-	}
-	else if (id >= 81 && id <= 84) {
-		toolObj = 2;
-		setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
-						 adjustBlueBrightness, mat2(1.0, 0, 0, 1.0) );
-	}
+    } else if (id >= 81 && id <= 84) { // R/G/B/ALL Light 2
+        toolObj = 2;
+        setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
+                         adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
+
+    } else if (id == 500) { // Move Light 3
+        toolObj = 3;
+        setToolCallbacks(adjustLocXZ, camRotZ(),
+                         adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
+
+    } else if (id >= 501 && id <= 504) { // R/G/B/ALL Light 3
+        toolObj = 3;
+        setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
+                         adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
+    }
+    else if (id == 600) { // Adjust angle cutoff for light 3
+    	toolObj = 3;
+        setToolCallbacks(adjustAngleCutoffAndDirection, mat2(1.0, 0, 0, 1.0),
+        		adjustAngleCutoffAndDirection, mat2(1.0, 0, 0, 1.0));
+    }
     else {
         printf("Error in lightMenu\n");
         exit(1);
@@ -586,6 +632,38 @@ static void adjustAngleZTexscale(vec2 az_ts) {
     sceneObjs[currObject].texScale += az_ts[1];
 }
 
+// PART J.3. Duplicate object
+static void duplicateObject(int id) {
+    if (nObjects == maxObjects) {
+        return;
+    }
+    sceneObjs[nObjects] = sceneObjs[id];
+    toolObj = currObject = nObjects++;
+    setToolCallbacks(adjustLocXZ, camRotZ(),
+                     adjustScaleY, mat2(0.05, 0, 0, 10.0));
+    glutPostRedisplay();
+
+    makeMenu(); // PART J.2. Required for object selection sub-menu
+
+}
+
+// PART J.4. Delete object
+static void deleteObject(int id) {
+    sceneObjs[currObject].meshId = NULL;
+    currObject = -1;
+    delObjects++;
+    makeMenu(); // PART J.2. Update object selection sub-menu
+}
+
+// PART J.2. Object selection menu
+static void selectObjectMenu(int id) {
+    int objectId = id - 100; // Object's actual index
+    toolObj = objectId;
+    currObject = objectId;
+    makeMenu();
+}
+
+
 static void mainmenu(int id) {
     deactivateTool();
     if (id == 41 && currObject >= 0) {
@@ -595,12 +673,22 @@ static void mainmenu(int id) {
     }
     if (id == 50)
         doRotate();
+
+    if (id == 51 && currObject >= 0) {
+        duplicateObject(currObject);
+    }
+
+    if (id == 52 && currObject >= 0) {
+        deleteObject(currObject);
+    }
     if (id == 55 && currObject >= 0) {
         setToolCallbacks(adjustAngleYX, mat2(400, 0, 0, -400),
                          adjustAngleZTexscale, mat2(400, 0, 0, 15));
     }
     if (id == 99) exit(0);
 }
+
+
 
 static void makeMenu() {
     int objectId = createArrayMenu(numMeshes, objectMenuEntries, objectMenu);
@@ -615,18 +703,46 @@ static void makeMenu() {
     int groundMenuId = createArrayMenu(numTextures, textureMenuEntries, groundMenu);
 
     int lightMenuId = glutCreateMenu(lightMenu);
-    glutAddMenuEntry("Move Light 1", 70);
-    glutAddMenuEntry("R/G/B/All Light 1", 71);
-    glutAddMenuEntry("Move Light 2", 80);
-    glutAddMenuEntry("R/G/B/All Light 2", 81);
+    glutAddMenuEntry("Move Light 1",70);
+    glutAddMenuEntry("R/G/B/All Light 1",71);
+    glutAddMenuEntry("Move Light 2",80);
+    glutAddMenuEntry("R/G/B/All Light 2",81);
+    glutAddMenuEntry("Move Light 3",500);
+    glutAddMenuEntry("R/G/B/All Light 3",501);
+    glutAddMenuEntry("Adjust illumination direction", 600);
+
+    // PART J.2. Selection of objects using a sub-menu
+    int selectObjMenuId = glutCreateMenu(selectObjectMenu);
+    for (int i = 3; i < nObjects; i++) { // Exclude ground, lightObj1 and lightObj2
+        char objectName[128]; // Same size used in gnatidread.h
+        if (sceneObjs[i].meshId != NULL) {
+            int objectId = 100 + i;
+            strcpy(objectName, objectMenuEntries[sceneObjs[i].meshId - 1]);
+            strcat(objectName, " (");
+            strcat(objectName, textureMenuEntries[sceneObjs[i].texId - 1]);
+            strcat(objectName, ")");
+            if (currObject == i) { // Indicate currently selected object
+                strcat(objectName, " *");
+            }
+            glutAddMenuEntry(objectName, objectId);
+        }
+    }
 
     glutCreateMenu(mainmenu);
     glutAddMenuEntry("Rotate/Move Camera", 50);
     glutAddSubMenu("Add object", objectId);
-    glutAddMenuEntry("Position/Scale", 41);
-    glutAddMenuEntry("Rotation/Texture Scale", 55);
-    glutAddSubMenu("Material", materialMenuId);
-    glutAddSubMenu("Texture", texMenuId);
+    // PART J.5. Show sub-menu if an object exists (excluding the ground and lights)
+    if (nObjects - delObjects - 3 > 0) {
+        glutAddSubMenu("Select Object", selectObjMenuId);
+    }
+    if (currObject != -1) { // PART J.5. Show only when an object is selected
+        glutAddMenuEntry("Duplicate Object", 51);
+        glutAddMenuEntry("Delete Object", 52);
+        glutAddMenuEntry("Position/Scale", 41);
+        glutAddMenuEntry("Rotation/Texture Scale", 55);
+        glutAddSubMenu("Material", materialMenuId);
+        glutAddSubMenu("Texture", texMenuId);
+    }
     glutAddSubMenu("Ground Texture", groundMenuId);
     glutAddSubMenu("Lights", lightMenuId);
     glutAddMenuEntry("EXIT", 99);
