@@ -307,8 +307,14 @@ static void selectObjMenu(int id) {
 // EDIT: PART J
 static void deleteObject(int id) {
     sceneObjs[currObject].meshId = NULL;
-    currObject = -1;
     delObjects++;
+
+    if (nObjects - delObjects > 3) {
+        currObject = 3;
+    }
+    else {
+        currObject = -1;
+    }
     makeMenu();
 }
 
