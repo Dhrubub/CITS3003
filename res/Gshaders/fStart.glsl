@@ -18,6 +18,7 @@ uniform float texScale;
 
 void main()
 {
+	vec3 materialSpecularColor = vec3(1.0, 1.0, 1.0);
 	vec4 vpos = vec4(Position, 1.0);
 	vec3 pos = (ModelView * vpos).xyz;
 	vec3 N = normalize((ModelView * vec4(Normal, 0.0)).xyz);
@@ -35,11 +36,11 @@ void main()
 	vec3 E = normalize(-pos);
 	vec3 H = normalize(L + E);
 
-	vec3 ambient = AmbientProduct; 
+	vec3 ambient = attenuation * AmbientProduct; 
 	float Kd = max(dot(L, N), 0.0);
-	vec3 diffuse = Kd * DiffuseProduct;
+	vec3 diffuse = attenuation * Kd * DiffuseProduct;
 	float Ks = pow(max(dot(N,H),0.0), Shininess);
-	vec3 specular = Ks * SpecularProduct; 
+	vec3 specular = attenuation * Ks * SpecularProduct; 
 	
 	if (dot(L, N) < 0.0) {
 		specular = vec3(0.0,0.0,0.0);
@@ -61,7 +62,7 @@ void main()
 	float Kd2 = max(dot(L2, N), 0.0);
 	vec3 diffuse2 = Kd2 * DiffuseProduct;
 	float Ks2 = pow(max(dot(N,H2),0.0), Shininess);
-	vec3 specular2 = Ks2 * SpecularProduct; 
+	vec3 specular2 = Ks2 * SpecularProduct * materialSpecularColor;
 	
 	if (dot(L2, N) < 0.0) {
 		specular2 = vec3(0.0,0.0,0.0);
