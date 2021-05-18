@@ -25,6 +25,12 @@ uniform vec3 LightColor2;
 uniform float LightBrightness2;
 uniform vec4 LightObj2; // EDIT: PART J Location of light 2
 
+// PART I. Light Object 3
+uniform vec4 LightPosition3;
+uniform vec3 LightColor3;
+uniform float LightBrightness3;
+uniform vec4 LightObj3; // EDIT: PART J Location of light 3
+
 void main()
 {
 	vec3 materialSpecularColor = vec3(1.0, 1.0, 1.0);
@@ -32,7 +38,7 @@ void main()
 	vec3 pos = (ModelView * vpos).xyz;
 	vec3 N = normalize((ModelView * vec4(Normal, 0.0)).xyz);
 	
-	// Light One
+	// Light One ------------------------------------------------------------------------
 	// Direction
 	vec3 Lvec = LightPosition.xyz - pos;
 	float lightDistance = length(Lvec);
@@ -55,7 +61,7 @@ void main()
 		specular = vec3(0.0,0.0,0.0);
 	}
 
-	// Light Two
+	// Light Two ------------------------------------------------------------------------
 	// Direction
 	float xDir, yDir, zDir;
 	xDir = clamp(-LightPosition2.x, -3.0, 3.0);
@@ -78,13 +84,37 @@ void main()
 	if (dot(L2, N) < 0.0) {
 		specular2 = vec3(0.0,0.0,0.0);
 	}
+
+	// Light Three ------------------------------------------------------------------------
+	// Direction
+	vec3 Lvec3 = LightPosition3.xyz - pos;
+	float lightDistance3 = length(Lvec3);
+
+	// Attenuation
+	float attenuation3 = 1.0 / (1.0 + 1.0 * lightDistance3 + 1.0 * pow(lightDistance3,2.0));
+
+	vec3 L3 = normalize(Lvec3);
+	vec3 E3 = normalize(-pos);
+	vec3 H3 = normalize(L3 + E3);
+
+	float Kd3 = max(dot(L3, N), 0.0);
+	float Ks3 = pow(max(dot(N, H3),0.0), Shininess);
+	
+	vec3 ambient3 = AmbientProduct * (LightColor3 * LightBrightness3); 
+	vec3 diffuse3 = Kd3 * DiffuseProduct * (LightColor3 * LightBrightness3);
+	vec3 specular3 = Ks3 * SpecularProduct * LightBrightness3; 
+	
+	if (dot(L3, N) < 0.0) {
+		specular3 = vec3(0.0,0.0,0.0);
+	}
 	
 	vec3 globalAmbient = vec3(0.1,0.1,0.1);
 
 	vec3 colorLight1 = attenuation * (ambient + diffuse + specular);
 	vec3 colorLight2 = ambient2 + diffuse2 + specular2;
+	vec3 colorLight3 = attenuation3 * (ambient3 + diffuse3 + specular3);
 
-	vec3 colorCombined = globalAmbient + colorLight1 + colorLight2;
+	vec3 colorCombined = globalAmbient + colorLight1 + colorLight2 + colorLight3;
 
 	gl_FragColor = texture2D(texture, texCoord * 2.0 * texScale) * vec4(colorCombined, 1.0);
 	

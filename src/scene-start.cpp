@@ -309,7 +309,8 @@ static void deleteObject(int id) {
     sceneObjs[currObject].meshId = NULL;
     delObjects++;
 
-    if (nObjects - delObjects > 3) {
+    // Set to another object if available
+    if (nObjects - delObjects > 4) {
         currObject = 3;
     }
     else {
@@ -393,6 +394,12 @@ void init(void) {
     sceneObjs[2].texId = 0; // Plain texture
     sceneObjs[2].brightness = 0.2; // The light's brightness is 5 times this (below).
 
+    addObject(55); // Sphere for the second light
+    sceneObjs[3].loc = vec4(0.0, 1.0, -1.0, 1.0);
+    sceneObjs[3].scale = 0.1;
+    sceneObjs[3].texId = 0; // Plain texture
+    sceneObjs[3].brightness = 0.2; // The light's brightness is 5 times this (below).
+
 
     addObject(rand() % numMeshes); // A test mesh
 
@@ -469,21 +476,29 @@ void display(void) {
 
     // EDIT: PART I
     SceneObject lightObj2 = sceneObjs[2];
-    vec4 lightPosition2 = rotation * lightObj2.loc ;
+    vec4 lightPosition2 = rotation * lightObj2.loc;
+
+    // EDIT: PART J
+    SceneObject lightObj3 = sceneObjs[3];
+    vec4 lightPosition3 = view * lightObj3.loc;
 
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), 1, lightPosition); CheckError();
     glUniform4fv( glGetUniformLocation(shaderProgram, "LightPosition2"), 1, lightPosition2);
+    glUniform4fv( glGetUniformLocation(shaderProgram, "LightPosition3"), 1, lightPosition3);
 
     // EDIT: PART J
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightObj"), 1, lightObj1.loc); CheckError();
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightObj2"), 1, lightObj2.loc); CheckError();
+    glUniform4fv(glGetUniformLocation(shaderProgram, "LightObj3"), 1, lightObj3.loc); CheckError();
 
     glUniform3fv(glGetUniformLocation(shaderProgram, "LightColor"), 1, lightObj1.rgb); CheckError();
     glUniform3fv(glGetUniformLocation(shaderProgram, "LightColor2"), 1, lightObj2.rgb); CheckError();
+    glUniform3fv(glGetUniformLocation(shaderProgram, "LightColor3"), 1, lightObj3.rgb); CheckError();
 
     // EDIT: PART H
     glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness"), lightObj1.brightness); CheckError();
     glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness2"), lightObj2.brightness); CheckError();
+    glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness3"), lightObj3.brightness); CheckError();
 
     for (int i=0; i < nObjects; i++) {
         SceneObject so = sceneObjs[i];
@@ -571,6 +586,16 @@ static void lightMenu(int id) {
 
     } else if (id >= 81 && id <= 84) { // R/G/B/ALL Light 2
         toolObj = 2;
+        setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
+                         adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
+    
+    } else if (id == 90) { // Move Light 3
+        toolObj = 3;
+        setToolCallbacks(adjustLocXZ, camRotZ(),
+                         adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
+
+    } else if (id >= 91 && id <= 94) { // R/G/B/ALL Light 3
+        toolObj = 3;
         setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
                          adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
     } else {
@@ -677,10 +702,12 @@ static void makeMenu() {
     glutAddMenuEntry("R/G/B/All Light 1",71);
     glutAddMenuEntry("Move Light 2",80);
     glutAddMenuEntry("R/G/B/All Light 2",81);
+    glutAddMenuEntry("Move Light 3",90);
+    glutAddMenuEntry("R/G/B/All Light 3",91);
 
     // EDIT: PART J
     int selectObjMenuId = glutCreateMenu(selectObjMenu);
-    for (int i = 3; i < nObjects; i++) {
+    for (int i = 4; i < nObjects; i++) {
         if (sceneObjs[i].meshId != NULL) {
             int objId = 100 + i;
             string objName = objectMenuEntries[sceneObjs[i].meshId - 1];
@@ -698,7 +725,7 @@ static void makeMenu() {
     glutAddMenuEntry("Rotate/Move Camera", 50);
     glutAddSubMenu("Add object", objectId);
     // EDIT: PART J
-    if (nObjects - delObjects - 3 > 0) {
+    if (nObjects - delObjects > 4 ) {
         glutAddSubMenu("Select Object", selectObjMenuId);
     }
 
