@@ -1,4 +1,3 @@
-
 #include "Angel.h"
 
 // Open Asset Importer header files (in ../../assimp--3.0.1270/include)
@@ -41,7 +40,7 @@ mat4 view; // View matrix - set in the display function.
 
 // These are used to set the window title
 char lab[] = "Project1";
-char *programName = NULL; // Set in main 
+char *programName = NULL; // Set in main
 int numDisplayCalls = 0; // Used to calculate the number of frames per second
 
 //------Meshes----------------------------------------------------------------
@@ -78,6 +77,7 @@ SceneObject sceneObjs[maxObjects]; // An array storing the objects currently in 
 int nObjects = 0;    // How many objects are currenly in the scene.
 int currObject = -1; // The current object
 int toolObj = -1;    // The object currently being modified
+int delObjects = 0; // How many deleted objects
 
 //----------------------------------------------------------------------------
 //
@@ -253,6 +253,8 @@ static void doRotate() {
                      adjustcamSideUp, mat2(400, 0, 0, -90));
 }
 
+static void makeMenu(); // PART J.2. Selection menu update. Prevent compilation erorr
+
 //------Add an object to the scene--------------------------------------------
 
 static void addObject(int id) {
@@ -288,6 +290,8 @@ static void addObject(int id) {
     setToolCallbacks(adjustLocXZ, camRotZ(),
                      adjustScaleY, mat2(0.05, 0, 0, 10.0));
     glutPostRedisplay();
+
+    makeMenu(); // PART J.2. Object selection sub-menu needs to be updated
 }
 
 //------The init function-----------------------------------------------------
@@ -469,6 +473,7 @@ static void texMenu(int id) {
         sceneObjs[currObject].texId = id;
         glutPostRedisplay();
     }
+    makeMenu(); // [Part J] Object selection name update
 }
 
 static void groundMenu(int id) {
@@ -583,6 +588,38 @@ static void adjustAngleZTexscale(vec2 az_ts) {
     sceneObjs[currObject].texScale += az_ts[1];
 }
 
+// PART J.3. Duplicate object
+static void duplicateObject(int id) {
+    if (nObjects == maxObjects) {
+        return;
+    }
+    sceneObjs[nObjects] = sceneObjs[id];
+    toolObj = currObject = nObjects++;
+    setToolCallbacks(adjustLocXZ, camRotZ(),
+                     adjustScaleY, mat2(0.05, 0, 0, 10.0));
+    glutPostRedisplay();
+
+    makeMenu(); // PART J.2. Required for object selection sub-menu
+
+}
+
+// PART J.4. Delete object
+static void deleteObject(int id) {
+    sceneObjs[currObject].meshId = NULL;
+    currObject = -1;
+    delObjects++;
+    makeMenu(); // PART J.2. Update object selection sub-menu
+}
+
+// PART J.2. Object selection menu
+static void selectObjectMenu(int id) {
+    int objectId = id - 100; // Object's actual index
+    toolObj = objectId;
+    currObject = objectId;
+    makeMenu();
+}
+
+
 static void mainmenu(int id) {
     deactivateTool();
     if (id == 41 && currObject >= 0) {
@@ -592,12 +629,22 @@ static void mainmenu(int id) {
     }
     if (id == 50)
         doRotate();
+
+    if (id == 51 && currObject >= 0) {
+        duplicateObject(currObject);
+    }
+
+    if (id == 52 && currObject >= 0) {
+        deleteObject(currObject);
+    }
     if (id == 55 && currObject >= 0) {
         setToolCallbacks(adjustAngleYX, mat2(400, 0, 0, -400),
                          adjustAngleZTexscale, mat2(400, 0, 0, 15));
     }
     if (id == 99) exit(0);
 }
+
+
 
 static void makeMenu() {
     int objectId = createArrayMenu(numMeshes, objectMenuEntries, objectMenu);
@@ -617,13 +664,38 @@ static void makeMenu() {
     glutAddMenuEntry("Move Light 2",80);
     glutAddMenuEntry("R/G/B/All Light 2",81);
 
+    // PART J.2. Selection of objects using a sub-menu
+    int selectObjMenuId = glutCreateMenu(selectObjectMenu);
+    for (int i = 3; i < nObjects; i++) { // Exclude ground, lightObj1 and lightObj2
+        char objectName[128]; // Same size used in gnatidread.h
+        if (sceneObjs[i].meshId != NULL) {
+            int objectId = 100 + i;
+            strcpy(objectName, objectMenuEntries[sceneObjs[i].meshId - 1]);
+            strcat(objectName, " (");
+            strcat(objectName, textureMenuEntries[sceneObjs[i].texId - 1]);
+            strcat(objectName, ")");
+            if (currObject == i) { // Indicate currently selected object
+                strcat(objectName, " *");
+            }
+            glutAddMenuEntry(objectName, objectId);
+        }
+    }
+
     glutCreateMenu(mainmenu);
     glutAddMenuEntry("Rotate/Move Camera", 50);
     glutAddSubMenu("Add object", objectId);
-    glutAddMenuEntry("Position/Scale", 41);
-    glutAddMenuEntry("Rotation/Texture Scale", 55);
-    glutAddSubMenu("Material", materialMenuId);
-    glutAddSubMenu("Texture", texMenuId);
+    // PART J.5. Show sub-menu if an object exists (excluding the ground and lights)
+    if (nObjects - delObjects - 3 > 0) {
+        glutAddSubMenu("Select Object", selectObjMenuId);
+    }
+    if (currObject != -1) { // PART J.5. Show only when an object is selected
+        glutAddMenuEntry("Duplicate Object", 51);
+        glutAddMenuEntry("Delete Object", 52);
+        glutAddMenuEntry("Position/Scale", 41);
+        glutAddMenuEntry("Rotation/Texture Scale", 55);
+        glutAddSubMenu("Material", materialMenuId);
+        glutAddSubMenu("Texture", texMenuId);
+    }
     glutAddSubMenu("Ground Texture", groundMenuId);
     glutAddSubMenu("Lights", lightMenuId);
     glutAddMenuEntry("EXIT", 99);
