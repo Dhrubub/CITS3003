@@ -36,11 +36,12 @@ void main()
 	vec3 E = normalize(-pos);
 	vec3 H = normalize(L + E);
 
-	vec3 ambient = attenuation * AmbientProduct; 
 	float Kd = max(dot(L, N), 0.0);
-	vec3 diffuse = attenuation * Kd * DiffuseProduct;
-	float Ks = pow(max(dot(N,H),0.0), Shininess);
-	vec3 specular = attenuation * Ks * SpecularProduct; 
+	float Ks = pow(max(dot(N, H),0.0), Shininess);
+	
+	vec3 ambient = AmbientProduct; 
+	vec3 diffuse = Kd * DiffuseProduct;
+	vec3 specular = Ks * SpecularProduct; 
 	
 	if (dot(L, N) < 0.0) {
 		specular = vec3(0.0,0.0,0.0);
@@ -58,20 +59,23 @@ void main()
 	vec3 E2 = normalize(-pos);
 	vec3 H2 = normalize(L2 + E2);
 
-	vec3 ambient2 = AmbientProduct; 
 	float Kd2 = max(dot(L2, N), 0.0);
+	float Ks2 = pow(max(dot(N, H2),0.0), Shininess);
+	
+	vec3 ambient2 = AmbientProduct; 
 	vec3 diffuse2 = Kd2 * DiffuseProduct;
-	float Ks2 = pow(max(dot(N,H2),0.0), Shininess);
 	vec3 specular2 = Ks2 * SpecularProduct * materialSpecularColor;
 	
-	if (dot(L2, N) < 0.0) {
-		specular2 = vec3(0.0,0.0,0.0);
-	}
+	// if (dot(L2, N) < 0.0) {
+	// 	specular2 = vec3(0.0,0.0,0.0);
+	// }
+	float dotp = max(-dot(L2, N) * 0.7, 0.0);
+	specular2 = vec3(dotp, dotp, dotp);
 
 	
 	vec3 globalAmbient = vec3(0.1,0.1,0.1);
 
-	vec3 colorLight1 = ambient + diffuse + specular;
+	vec3 colorLight1 = attenuation * (ambient + diffuse + specular);
 	vec3 colorLight2 = ambient2 + diffuse2 + specular2;
 
 	vec3 colorCombined = globalAmbient + colorLight1 * 5.0 + colorLight2 * 1.5;
