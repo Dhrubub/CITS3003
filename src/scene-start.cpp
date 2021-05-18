@@ -423,7 +423,7 @@ void display(void) {
 
     // PART I. Second light
     SceneObject lightObj2 = sceneObjs[2];
-    vec4 lightPosition2 = lightObj2.loc ;
+    vec4 lightPosition2 = view * lightObj2.loc ;
 
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), 1, lightPosition); CheckError();
     glUniform4fv( glGetUniformLocation(shaderProgram, "LightPosition2"), 1, lightPosition2);
