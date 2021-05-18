@@ -80,6 +80,10 @@ int toolObj = -1;    // The object currently being modified
 int delObjects = 0; // How many deleted objects
 
 //----------------------------------------------------------------------------
+float spotlightDistance = 0;
+float spotlightX = 0;
+float spotlightZ = 0;
+//----------------------------------------------------------------------------
 //
 // Loads a texture by number, and binds it for later use.
 void loadTextureIfNotAlreadyLoaded(int i) {
@@ -334,9 +338,6 @@ static void duplicateObject(int id) {
 
 }
 
-
-
-
 //------The init function-----------------------------------------------------
 
 void init(void) {
@@ -457,7 +458,7 @@ void drawMesh(SceneObject sceneObj) {
 }
 
 //----------------------------------------------------------------------------
-float spotlightDirection = 0;
+
 
 void display(void) {
     numDisplayCalls++;
@@ -501,7 +502,9 @@ void display(void) {
     glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness2"), lightObj2.brightness); CheckError();
     glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness3"), lightObj3.brightness); CheckError();
 
-    glUniform1f(glGetUniformLocation(shaderProgram, "spotlightDirection"), spotlightDirection); CheckError();
+    glUniform1f(glGetUniformLocation(shaderProgram, "spotlightDistance"), spotlightDistance); CheckError();
+    glUniform1f(glGetUniformLocation(shaderProgram, "spotlightX"), spotlightX); CheckError();
+    glUniform1f(glGetUniformLocation(shaderProgram, "spotlightZ"), spotlightZ); CheckError();
 
     for (int i=0; i < nObjects; i++) {
         SceneObject so = sceneObjs[i];
@@ -573,7 +576,12 @@ static void adjustSpecularShine(vec2 sp_sh) {
 
 
 static void adjustIllumination(vec2 il) {
-    spotlightDirection += il[0];
+    spotlightDistance += il[0];
+}
+
+static void adjustSpotlightXZ(vec2 xz) {
+    spotlightX += xz[0];
+    spotlightZ += xz[1];
 }
 
 static void lightMenu(int id) {
@@ -609,7 +617,7 @@ static void lightMenu(int id) {
     
     } else if (id == 520) { // Move Illumination Light 3
         toolObj = 3;
-        setToolCallbacks(adjustIllumination, mat2(1.0, 0, 0, 1.0),
+        setToolCallbacks(adjustSpotlightXZ, mat2(1.0, 0, 0, 1.0),
                          adjustIllumination, mat2(1.0, 0, 0, 1.0));
     } else {
         printf("Error in lightMenu\n");

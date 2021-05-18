@@ -30,7 +30,10 @@ uniform vec4 LightPosition3;
 uniform vec3 LightColor3;
 uniform float LightBrightness3;
 uniform vec4 LightObj3; // EDIT: PART J Location of light 3
-uniform float spotlightDirection;
+
+uniform float spotlightDistance;
+uniform float spotlightX;
+uniform float spotlightZ;
 
 void main()
 {
@@ -89,9 +92,9 @@ void main()
 	// Light Three ------------------------------------------------------------------------
 	// Direction
 	vec3 colorLight3 = vec3(0.0, 0.0, 0.0);
-	vec3 Lvec3 = LightPosition3.xyz - pos;
+	vec3 Lvec3 = LightPosition3.xyz - pos -spotlightDistance;
 
-	float theta = dot(N, normalize(-Lvec3 - spotlightDirection));
+	float theta = dot(N + vec3(spotlightX, 0, spotlightZ), normalize(-Lvec3));
 	
 
 
