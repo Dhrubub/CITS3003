@@ -58,7 +58,7 @@ void main()
 	
 	vec3 ambient = AmbientProduct * (LightColor * LightBrightness); 
 	vec3 diffuse = Kd * DiffuseProduct * (LightColor * LightBrightness);
-	vec3 specular = Ks * SpecularProduct * LightBrightness * vec3(1.0, 1.0, 1.0);; 
+	vec3 specular = Ks * SpecularProduct * LightBrightness * vec3(1.0, 1.0, 1.0);
 	
 	if (dot(L, N) < 0.0) {
 		specular = vec3(0.0,0.0,0.0);
