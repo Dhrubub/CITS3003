@@ -91,6 +91,8 @@ void main()
 
 	// Light Three ------------------------------------------------------------------------
 	// Direction
+	
+	// Based code from https://learnopengl.com/Lighting/Light-casters 
 	vec3 colorLight3 = vec3(0.0, 0.0, 0.0);
 	vec3 Lvec3 = LightPosition3.xyz - pos - vec3(spotlightDistance, 0, spotlightDistance);
 
