@@ -37,7 +37,6 @@ uniform float spotlightZ;
 
 void main()
 {
-	vec3 materialSpecularColor = vec3(1.0, 1.0, 1.0);
 	vec4 vpos = vec4(Position, 1.0);
 	vec3 pos = (ModelView * vpos).xyz;
 	vec3 N = normalize((ModelView * vec4(Normal, 0.0)).xyz);
