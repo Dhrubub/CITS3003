@@ -339,6 +339,14 @@ void init(void) {
     sceneObjs[1].scale = 0.1;
     sceneObjs[1].texId = 0; // Plain texture
 
+    // EDIT: PART I
+    // Light is directional rather than positonal
+    addObject(55); // Sphere for the second light
+    sceneObjs[2].loc = vec4(2.5, 1.0, 1.0, 0.0);
+    sceneObjs[2].scale = 0.2;
+    sceneObjs[2].texId = 0; // Plain texture
+    sceneObjs[2].brightness = 1.0; // The light's brightness is 5 times this (below).
+
     // EDIT: CHANGED FROM 0.2 TO 1.0
     sceneObjs[1].brightness = 1.0; // The light's brightness is 5 times this (below).
 
@@ -415,8 +423,14 @@ void display(void) {
     SceneObject lightObj1 = sceneObjs[1];
     vec4 lightPosition = view * lightObj1.loc;
 
+    SceneObject lightObj2 = sceneObjs[2];
+    vec4 lightPosition2 = view * lightObj2.loc;
+
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"),
                  1, lightPosition);
+
+    // glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"),
+    //              1, lightPosition2);
     CheckError();
 
     for (int i = 0; i < nObjects; i++) {
@@ -494,6 +508,14 @@ static void lightMenu(int id) {
                          adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
     } else if (id >= 71 && id <= 74) {
         toolObj = 1;
+        setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
+                         adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
+    } else if (id == 80) {
+        toolObj = 2;
+        setToolCallbacks(adjustLocXZ, camRotZ(),
+                         adjustBrightnessY, mat2(1.0, 0.0, 0.0, 10.0));
+    } else if (id >= 81 && id <= 84) {
+        toolObj = 2;
         setToolCallbacks(adjustRedGreen, mat2(1.0, 0, 0, 1.0),
                          adjustBlueBrightness, mat2(1.0, 0, 0, 1.0));
     } else {
