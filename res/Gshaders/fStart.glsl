@@ -30,6 +30,7 @@ uniform vec4 LightPosition3;
 uniform vec3 LightColor3;
 uniform float LightBrightness3;
 uniform vec4 LightObj3; // EDIT: PART J Location of light 3
+uniform float cutOff3;
 
 void main()
 {
@@ -55,7 +56,7 @@ void main()
 	
 	vec3 ambient = AmbientProduct * (LightColor * LightBrightness); 
 	vec3 diffuse = Kd * DiffuseProduct * (LightColor * LightBrightness);
-	vec3 specular = Ks * SpecularProduct * LightBrightness; 
+	vec3 specular = Ks * SpecularProduct * LightBrightness * vec3(1.0, 1.0, 1.0);; 
 	
 	if (dot(L, N) < 0.0) {
 		specular = vec3(0.0,0.0,0.0);
@@ -87,33 +88,39 @@ void main()
 
 	// Light Three ------------------------------------------------------------------------
 	// Direction
+	vec3 colorLight3 = vec3(0.0, 0.0, 0.0);
 	vec3 Lvec3 = LightPosition3.xyz - pos;
-	float lightDistance3 = length(Lvec3);
 
-	// Attenuation
-	float attenuation3 = 1.0 / (1.0 + 1.0 * lightDistance3 + 1.0 * pow(lightDistance3,2.0));
-
-	vec3 L3 = normalize(Lvec3);
-	vec3 E3 = normalize(-pos);
-	vec3 H3 = normalize(L3 + E3);
-
-	float Kd3 = max(dot(L3, N), 0.0);
-	float Ks3 = pow(max(dot(N, H3),0.0), Shininess);
+	float theta = dot(N, normalize(-Lvec3));
 	
-	vec3 ambient3 = AmbientProduct * (LightColor3 * LightBrightness3); 
-	vec3 diffuse3 = Kd3 * DiffuseProduct * (LightColor3 * LightBrightness3);
-	vec3 specular3 = Ks3 * SpecularProduct * LightBrightness3; 
+
+
+
+	if (theta > 0.75) {  
+		vec3 L3 = normalize(Lvec3);
+		vec3 E3 = normalize(-pos);
+		vec3 H3 = normalize(L3 + E3);
+		float Kd3 = max(dot(L3, N), 0.0);
+		float Ks3 = pow(max(dot(N, H3),0.0), Shininess);
+		float lightDistance3 = length(Lvec3);
+
+		vec3 ambient3 = AmbientProduct * (LightColor3 * LightBrightness3); 
+		vec3 diffuse3 = Kd3 * DiffuseProduct * (LightColor3 * LightBrightness3);
+		vec3 specular3 = Ks3 * SpecularProduct * LightBrightness3 * vec3(1.0, 1.0, 1.0);; 
+
+		float attenuation3 = 1.0 / (1.0 + 1.0 * lightDistance3 + 1.0 * pow(lightDistance3,2.0));
 	
-	if (dot(L3, N) < 0.0) {
-		specular3 = vec3(0.0,0.0,0.0);
+		if (dot(L3, N) < 0.0) {
+			specular3 = vec3(0.0,0.0,0.0);
+		}
+		colorLight3 = attenuation3 * (ambient3 + diffuse3 + specular3);
 	}
-	
+
 	vec3 globalAmbient = vec3(0.1,0.1,0.1);
 
 	vec3 colorLight1 = attenuation * (ambient + diffuse + specular);
 	vec3 colorLight2 = ambient2 + diffuse2 + specular2;
-	vec3 colorLight3 = attenuation3 * (ambient3 + diffuse3 + specular3);
-
+	
 	vec3 colorCombined = globalAmbient + colorLight1 + colorLight2 + colorLight3;
 
 	gl_FragColor = texture2D(texture, texCoord * 2.0 * texScale) * vec4(colorCombined, 1.0);

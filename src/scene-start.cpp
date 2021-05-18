@@ -500,6 +500,8 @@ void display(void) {
     glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness2"), lightObj2.brightness); CheckError();
     glUniform1f(glGetUniformLocation(shaderProgram, "LightBrightness3"), lightObj3.brightness); CheckError();
 
+    glUniform1f(glGetUniformLocation(shaderProgram, "cutOff3"), cos(12.5)); CheckError();
+
     for (int i=0; i < nObjects; i++) {
         SceneObject so = sceneObjs[i];
 
