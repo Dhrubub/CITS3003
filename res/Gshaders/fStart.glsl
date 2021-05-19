@@ -67,9 +67,9 @@ void main()
 	// Light Two ------------------------------------------------------------------------
 	// Direction
 	float xDir, yDir, zDir;
-	xDir = clamp(-LightPosition2.x, -3.0, 3.0);
-	yDir = clamp(-LightPosition2.y, -3.0, 3.0);
-	zDir = clamp(-LightPosition2.z, -3.0, 3.0);
+	xDir = -LightPosition2.x;
+	yDir = -LightPosition2.y;
+	zDir = -LightPosition2.z;
 
 	vec4 Direction = vec4(xDir, yDir, zDir, 0.0);
 
