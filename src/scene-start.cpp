@@ -323,9 +323,9 @@ static void removeObj(int id) {
 // EDIT: PART J
 static void duplicateObj(int id) {
     sceneObjs[nObjects] = sceneObjs[id];
-    nObjects++;
     toolObj = nObjects;
     currObject = nObjects;
+    nObjects++;
 
     setToolCallbacks(adjustLocXZ, camRotZ(),
         adjustScaleY, mat2(0.10, 0, 0, 10.0));
@@ -355,7 +355,7 @@ void init(void) {
     CheckError(); // Allocate texture objects
 
     // Load shaders and use the resulting shader program
-    shaderProgram = InitShader("res/Gshaders/vStart.glsl", "res/Gshaders/fStart.glsl");
+    shaderProgram = InitShader("res/Fshaders/vStart.glsl", "res/Fshaders/fStart.glsl");
 
     glUseProgram(shaderProgram);
     CheckError();
