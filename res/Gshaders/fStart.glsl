@@ -111,7 +111,7 @@ void main()
 
 		vec3 ambient3 = AmbientProduct * (LightColor3 * LightBrightness3); 
 		vec3 diffuse3 = Kd3 * DiffuseProduct * (LightColor3 * LightBrightness3);
-		vec3 specular3 = Ks3 * SpecularProduct * LightBrightness3 * vec3(1.0, 1.0, 1.0);; 
+		vec3 specular3 = Ks3 * SpecularProduct * LightBrightness3 * vec3(1.0, 1.0, 1.0);
 
 		float attenuation3 = 1.0 / (1.0 + 1.0 * lightDistance3 + 1.0 * pow(lightDistance3,2.0));
 	

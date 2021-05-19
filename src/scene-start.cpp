@@ -315,23 +315,18 @@ static void removeObj(int id) {
     sceneObjs[currObject].meshId = NULL;
     removedObjects++;
 
-    // Set to another object if available
-    if (nObjects - removedObjects > 4) {
-        currObject = 4;
-    }
-    else {
-        currObject = -1;
-    }
+    // Set current object to none selected
+    currObject = -1;
     makeMenu();
 }
 
 // EDIT: PART J
 static void duplicateObj(int id) {
-    if (nObjects == maxObjects) {
-        return;
-    }
     sceneObjs[nObjects] = sceneObjs[id];
-    toolObj = currObject = nObjects++;
+    nObjects++;
+    toolObj = nObjects;
+    currObject = nObjects;
+
     setToolCallbacks(adjustLocXZ, camRotZ(),
         adjustScaleY, mat2(0.10, 0, 0, 10.0));
     glutPostRedisplay();
@@ -514,7 +509,7 @@ void display(void) {
         vec3 rgb = so.rgb * so.brightness * 3.0; 
         glUniform3fv(glGetUniformLocation(shaderProgram, "AmbientProduct"), 1, so.ambient * rgb); CheckError();
         glUniform3fv(glGetUniformLocation(shaderProgram, "DiffuseProduct"), 1, so.diffuse * rgb);
-        glUniform3fv(glGetUniformLocation(shaderProgram, "SpecularProduct"), 1, so.specular * vec3(1.0, 1.0, 1.0));
+        glUniform3fv(glGetUniformLocation(shaderProgram, "SpecularProduct"), 1, so.specular * rgb);
         glUniform1f(glGetUniformLocation(shaderProgram, "Shininess"), so.shine); CheckError();
 
         drawMesh(sceneObjs[i]);
